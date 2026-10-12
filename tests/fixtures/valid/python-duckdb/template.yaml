@@ -1,0 +1,18 @@
+format: emolysis.template/v0
+id: dedupe-conform.duckdb
+shape: dedupe-conform
+platform: duckdb
+version: 0.1.0
+title: Distinct rows with a Python entry
+description: Test fixture. A Python entry that runs on DuckDB through run(con).
+entry: template.py
+slots:
+  - name: source_table
+    type: table
+    required: true
+  - name: target_table
+    type: table
+    required: true
+  - name: keys
+    type: columns
+    required: true

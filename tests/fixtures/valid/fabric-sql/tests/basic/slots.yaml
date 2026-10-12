@@ -1,0 +1,2 @@
+source_table: people
+target_table: people_clean

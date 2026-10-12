@@ -1,0 +1,54 @@
+name: Claude review
+
+# Reviews every non-draft pull request against AGENTS.md. Pull requests from
+# forks are skipped because they cannot read the ANTHROPIC_API_KEY secret.
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+  id-token: write
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Check for API key
+        id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "ANTHROPIC_API_KEY is not set; skipping." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: anthropics/claude-code-action@v1
+        if: steps.key.outputs.present == 'true'
+        env:
+          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL || 'https://api.anthropic.com' }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request against AGENTS.md and the documents it
+            tells you to read. Check correctness, the repository's rules (layering,
+            typed errors instead of crashes, tests with every change, a devlog
+            entry), and that nothing private leaks into a public repository.
+            Use inline comments for specific lines and one short summary comment.
+            Say nothing about things that are fine.
+          claude_args: >-
+            --model ${{ vars.CLAUDE_REVIEW_MODEL || 'claude-sonnet-5-5' }}
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"

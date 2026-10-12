@@ -1,0 +1,21 @@
+format: emolysis.template/v0
+id: dedupe-conform.snowflake
+shape: dedupe-conform
+platform: snowflake
+version: 0.1.0
+title: Latest row per key on Snowflake
+description: Test fixture. Snowflake SQL that has to be transpiled to run on DuckDB.
+entry: template.sql
+slots:
+  - name: source_table
+    type: table
+    required: true
+  - name: target_table
+    type: table
+    required: true
+  - name: key_column
+    type: column
+    required: true
+  - name: loaded_at
+    type: column
+    default: loaded_at

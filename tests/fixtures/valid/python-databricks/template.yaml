@@ -1,0 +1,15 @@
+format: emolysis.template/v0
+id: ingest-batch.databricks
+shape: ingest-batch
+platform: databricks
+version: 0.1.0
+title: Parquet ingest with a PySpark entry
+description: Test fixture. A PySpark entry; local tests skip it because it needs Spark.
+entry: template.py
+slots:
+  - name: source_path
+    type: string
+    required: true
+  - name: target_table
+    type: table
+    required: true

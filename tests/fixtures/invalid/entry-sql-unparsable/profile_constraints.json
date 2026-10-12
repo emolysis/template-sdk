@@ -1,0 +1,6 @@
+{
+  "platform": "databricks",
+  "profile_version": ">=1",
+  "requires": [],
+  "forbids": []
+}

@@ -1,0 +1,3 @@
+source_table: orders_raw
+target_table: orders
+key_column: order_id

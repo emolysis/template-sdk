@@ -1,0 +1,33 @@
+format: emolysis.template/v0
+id: aggregation-gold.duckdb
+shape: aggregation-gold
+platform: duckdb
+version: 0.1.0
+title: Gold aggregate on DuckDB
+description: >-
+  Rebuilds a gold table from a source table: one row per combination of the group-by
+  columns, with one output column per measure. Measures are SQL expressions with an
+  alias, so a filter on a single measure goes in the expression itself (for example
+  `count(*) FILTER (WHERE status <> 'cancelled') AS order_count`). The target is replaced
+  on every run, so running again on the same input gives the same table and late or
+  corrected rows are picked up.
+entry: template.sql
+slots:
+  - name: source_table
+    type: table
+    required: true
+    description: Table to aggregate.
+  - name: target_table
+    type: table
+    required: true
+    description: Gold table to create or replace.
+  - name: group_by
+    type: columns
+    required: true
+    description: Columns that define one output row; they are also output columns.
+  - name: measures
+    type: expressions
+    required: true
+    description: >-
+      Aggregate expressions, one output column each; give every one an alias, for
+      example `sum(amount) AS revenue`.

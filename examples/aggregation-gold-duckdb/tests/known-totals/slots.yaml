@@ -1,0 +1,10 @@
+# Orders by day and region; cancelled orders are left out of both measures. Run 02 is a
+# later full extract of the same source: two new orders on 2026-10-03, a late order for
+# 2026-10-01 and order 3 cancelled after the fact. The expected totals were computed by
+# hand.
+source_table: orders
+target_table: daily_revenue
+group_by: [order_date, region]
+measures:
+  - count(*) FILTER (WHERE status <> 'cancelled') AS order_count
+  - sum(amount) FILTER (WHERE status <> 'cancelled') AS revenue

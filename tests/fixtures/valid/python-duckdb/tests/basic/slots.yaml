@@ -1,0 +1,3 @@
+source_table: source
+target_table: target
+keys: [id, name]

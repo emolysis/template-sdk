@@ -1,0 +1,6 @@
+{
+  "platform": "fabric",
+  "profile_version": ">=1",
+  "requires": ["delta"],
+  "forbids": []
+}

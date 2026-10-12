@@ -1,0 +1,26 @@
+format: emolysis.template/v0
+id: aggregation-gold.databricks
+shape: aggregation-gold
+platform: databricks
+version: 0.1.0
+title: Size bands on Databricks
+description: >-
+  Test fixture. Spark SQL that has to be transpiled to run on DuckDB, with measures
+  written in Spark SQL.
+entry: template.sql
+slots:
+  - name: source_table
+    type: table
+    required: true
+  - name: target_table
+    type: table
+    required: true
+  - name: group_by
+    type: columns
+    required: true
+  - name: measures
+    type: expressions
+    required: true
+  - name: large_threshold
+    type: integer
+    default: 100

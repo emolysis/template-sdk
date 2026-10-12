@@ -1,0 +1,3 @@
+source_table: events
+target_table: events_all
+key_column: id

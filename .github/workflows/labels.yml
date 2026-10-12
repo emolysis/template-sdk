@@ -1,0 +1,27 @@
+name: Labels
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/labels.yml
+      - .github/workflows/labels.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Create or update labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yq -o=tsv '.[] | [.name, .color, .description]' .github/labels.yml |
+            while IFS=$'\t' read -r name color description; do
+              gh label create "$name" --color "$color" --description "$description" --force
+            done

@@ -1,0 +1,76 @@
+version: "3"
+
+# `task gate` is the merge bar and exactly what CI runs after `task setup`. It never
+# writes to the tree. `task fixtures` is the only way Parquet fixtures change.
+
+env:
+  UV_NO_PROGRESS: "1"
+
+tasks:
+  default:
+    desc: List tasks
+    silent: true
+    cmds:
+      - task --list
+
+  setup:
+    desc: Install locked dependencies into .venv (uv sync --locked)
+    cmds:
+      - uv sync --locked
+
+  fmt:
+    desc: Format and auto-fix Python sources in place (ruff)
+    cmds:
+      - uv run --locked ruff format .
+      - uv run --locked ruff check --fix .
+
+  lint:
+    desc: Check formatting and lint (ruff), without changing files
+    cmds:
+      - uv run --locked ruff format --check .
+      - uv run --locked ruff check .
+
+  typecheck:
+    desc: Type-check src/, scripts/ and tests/ (mypy strict)
+    cmds:
+      - uv run --locked mypy
+
+  test:
+    desc: Run pytest, including the hypothesis fuzz tests (pass extra args after --)
+    cmds:
+      - uv run --locked pytest {{.CLI_ARGS}}
+
+  fixtures:
+    desc: Regenerate every Parquet fixture from scripts/make_fixtures.py
+    cmds:
+      - uv run --locked python scripts/make_fixtures.py
+
+  fixtures:check:
+    desc: Check committed Parquet fixtures against scripts/make_fixtures.py
+    cmds:
+      - uv run --locked python scripts/make_fixtures.py --check
+
+  examples:
+    desc: Validate and test every template under examples/ with the CLI
+    cmds:
+      - uv run --locked emo-template validate examples/*/
+      - uv run --locked emo-template test examples/*/
+
+  package:
+    desc: Build the wheel into a temp dir and check it ships the JSON Schemas
+    cmds:
+      - |
+        out="$(mktemp -d)"
+        trap 'rm -rf "$out"' EXIT
+        uv build --wheel --quiet --out-dir "$out"
+        uv run --locked python scripts/check_wheel.py "$out"
+
+  gate:
+    desc: Everything CI checks (lint, typecheck, test, fixtures:check, examples, package)
+    cmds:
+      - task: lint
+      - task: typecheck
+      - task: test
+      - task: fixtures:check
+      - task: examples
+      - task: package

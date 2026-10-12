@@ -1,0 +1,6 @@
+{
+  "platform": "snowflake",
+  "profile_version": ">=1",
+  "requires": [],
+  "forbids": []
+}

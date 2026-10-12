@@ -1,0 +1,9 @@
+# Three group-by columns, every row included (cancelled ones too) and three measures,
+# one of them without a filter on status.
+source_table: sales
+target_table: daily_sales
+group_by: [order_date, region, channel]
+measures:
+  - count(*) AS row_count
+  - sum(amount) AS total_amount
+  - max(amount) AS largest_amount

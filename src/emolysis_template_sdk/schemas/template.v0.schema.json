@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:emolysis:schema:template:v0",
+  "title": "Emolysis template manifest (template.yaml), format v0",
+  "description": "Structure of template.yaml. The validator adds semantic rules on top of this schema; see docs/format.md.",
+  "type": "object",
+  "required": ["format", "id", "shape", "platform", "version", "title", "description", "entry", "slots"],
+  "properties": {
+    "format": {
+      "description": "Format version of this manifest.",
+      "const": "emolysis.template/v0"
+    },
+    "id": {
+      "description": "<shape>.<platform>",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*\\.[a-z0-9]+$"
+    },
+    "shape": {
+      "description": "Pipeline shape id.",
+      "enum": [
+        "ingest-batch",
+        "incremental-append",
+        "cdc-merge",
+        "scd2",
+        "snapshot",
+        "backfill",
+        "late-arriving",
+        "dedupe-conform",
+        "aggregation-gold",
+        "reverse-etl"
+      ]
+    },
+    "platform": {
+      "description": "Target platform id. duckdb is for local-only templates.",
+      "enum": ["databricks", "snowflake", "fabric", "duckdb"]
+    },
+    "version": {
+      "description": "Semantic version of this template.",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entry": {
+      "description": "Entry file name. Exactly one entry file exists in the template directory.",
+      "enum": ["template.sql", "template.py"]
+    },
+    "slots": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/slot" }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "slot": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "type": {
+          "enum": [
+            "identifier",
+            "table",
+            "column",
+            "columns",
+            "expression",
+            "expressions",
+            "string",
+            "integer",
+            "boolean",
+            "duration",
+            "enum"
+          ]
+        },
+        "required": {
+          "description": "true: every caller supplies a value and there is no default. false (the default): the slot declares a default.",
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "default": {
+          "description": "Value used when none is supplied; must be valid for the slot type."
+        },
+        "enum": {
+          "description": "Allowed values; required for and only allowed on enum slots.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

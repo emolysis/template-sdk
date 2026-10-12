@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.parquet binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
+
+pnpm-lock.yaml linguist-generated=true -diff
+uv.lock linguist-generated=true -diff
+docs/coverage.md linguist-generated=true

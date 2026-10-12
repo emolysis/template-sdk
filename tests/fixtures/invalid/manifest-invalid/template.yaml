@@ -1,0 +1,16 @@
+format: emolysis.template/v0
+id: snapshot.duckdb
+shape: snapshot
+platform: duckdb
+version: 0.1.0
+description: Test fixture. Copies a source table into a target table.
+entry: template.sql
+slots:
+  - name: source_table
+    type: table
+    required: true
+    description: Table to copy.
+  - name: target_table
+    type: table
+    required: true
+    description: Table to create.

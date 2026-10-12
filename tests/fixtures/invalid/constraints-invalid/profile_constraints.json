@@ -1,0 +1,6 @@
+{
+  "platform": "duckdb",
+  "profile_version": "latest",
+  "requires": [],
+  "forbids": []
+}

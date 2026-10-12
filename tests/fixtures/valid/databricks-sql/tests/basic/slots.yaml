@@ -1,0 +1,6 @@
+source_table: orders
+target_table: size_bands
+group_by: [region, size_band]
+measures:
+  - concat_ws('-', `region`, CAST(COUNT(*) AS STRING)) AS label
+  - SUM(nvl(amount, 0)) AS total_amount

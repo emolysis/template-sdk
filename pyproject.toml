@@ -1,0 +1,78 @@
+[project]
+name = "emolysis-template-sdk"
+version = "0.1.0"
+description = "Template format v0 spec, validator and test runner for writing Emolysis pipeline templates."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Emolysis" }]
+keywords = ["data-engineering", "sql", "templates", "duckdb", "sqlglot"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: SQL",
+  "Topic :: Database",
+  "Typing :: Typed",
+]
+dependencies = [
+  "duckdb>=1.4",
+  "jsonschema>=4.23",
+  "pyyaml>=6.0",
+  "sqlglot>=30.0",
+]
+
+[project.urls]
+Repository = "https://github.com/emolysis/template-sdk"
+Issues = "https://github.com/emolysis/template-sdk/issues"
+
+[project.scripts]
+emo-template = "emolysis_template_sdk.cli:main"
+
+[dependency-groups]
+dev = [
+  "hypothesis>=6.100",
+  "mypy>=1.11",
+  "pytest>=8.3",
+  "ruff>=0.6",
+  "types-jsonschema>=4.23",
+  "types-pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/emolysis_template_sdk"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "docs", "examples", "tests", "scripts", "README.md", "LICENSE", "NOTICE"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "scripts", "tests"]
+# Template entry files contain {{ slot }} placeholders and are not Python until rendered.
+extend-exclude = ["examples", "tests/fixtures"]
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "PT", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "scripts", "tests"]
+exclude = ["^tests/fixtures/"]
+mypy_path = "src"
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+xfail_strict = true

@@ -1,0 +1,20 @@
+# Labels shared by every Emolysis repository. The Labels workflow applies this
+# file on every push to main that changes it.
+- name: agent
+  color: "5319e7"
+  description: Claude implements this issue and opens a pull request
+- name: needs-spec
+  color: "fbca04"
+  description: Not ready for an agent until docs/specs covers it
+- name: bug
+  color: "d73a4a"
+  description: Something is broken
+- name: enhancement
+  color: "a2eeef"
+  description: New capability or improvement
+- name: documentation
+  color: "0075ca"
+  description: Docs only
+- name: blocked
+  color: "b60205"
+  description: Waiting on something outside this repository

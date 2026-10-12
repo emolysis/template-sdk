@@ -1,0 +1,18 @@
+format: emolysis.template/v0
+id: dedupe-conform.fabric
+shape: dedupe-conform
+platform: fabric
+version: 0.1.0
+title: Fill missing names on Fabric
+description: Test fixture. Spark SQL for a Fabric lakehouse, transpiled to run on DuckDB.
+entry: template.sql
+slots:
+  - name: source_table
+    type: table
+    required: true
+  - name: target_table
+    type: table
+    required: true
+  - name: fallback_name
+    type: string
+    default: unknown

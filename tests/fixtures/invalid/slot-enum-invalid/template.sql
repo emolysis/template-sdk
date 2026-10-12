@@ -1,0 +1,3 @@
+-- mode: {{ mode }}
+CREATE OR REPLACE TABLE {{ target_table }} AS
+SELECT * FROM {{ source_table }};

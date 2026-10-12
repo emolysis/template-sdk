@@ -1,0 +1,18 @@
+format: emolysis.template/v0
+id: incremental-append.duckdb
+shape: incremental-append
+platform: duckdb
+version: 0.1.0
+title: Append new keys on DuckDB
+description: Test fixture. Appends rows whose key is not in the target yet; state carries over between runs.
+entry: template.sql
+slots:
+  - name: source_table
+    type: table
+    required: true
+  - name: target_table
+    type: table
+    required: true
+  - name: key_column
+    type: column
+    required: true
