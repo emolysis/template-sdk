@@ -2,6 +2,14 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-18 · docs: the new positioning (green)
+
+- Landed: `README.md` and `AGENTS.md` open with the positioning: "An entire data team. One
+  download.", the agentic lakehouse for data engineering and analytics, a team of agents
+  you direct from your laptop. Unreleased things stay in the future tense; status unchanged.
+- Numbers: docs only.
+- Still open: none.
+
 ## 2026-10-12 · format: slot type `expressions`, example on `group_by` and `measures` (green)
 
 - Landed: slot type `expressions` (list of SQL expressions with optional aliases; each item rewritten by SQLGlot in the template's dialect, joined with `, `; Python list of strings) in `docs/format.md` section 4, `spec.py`, `template.v0.schema.json` and `slots.py`; per-dialect literal table for `string`, `boolean`, `duration` in `docs/format.md`.

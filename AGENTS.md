@@ -6,6 +6,20 @@ renderer and DuckDB test runner, the `emo-template` CLI, and example templates. 
 to write and test your own templates against format v0. The repository is public under
 MIT.
 
+## What we are building
+
+**An entire data team. One download.** Emolysis is the agentic lakehouse for data
+engineering and analytics. We're building a team of agents you can direct from your
+laptop: to investigate business questions, develop dashboards, and build and test
+pipelines for your data platform. The person directs the work and reviews the results;
+production pipelines run on the user's own data platform. Nothing is released yet.
+
+This repository is the public format the agents' pipeline templates follow, with a
+validator and a local test runner, so anyone can write and test templates of their own.
+Public text here uses these words. Say "we're building" or "will" for anything not
+released, and never claim that no setup is needed, that it works offline or that all
+data stays on the machine: prompts go to the model provider the user chooses.
+
 ## Read first
 
 1. This file.

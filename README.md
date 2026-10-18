@@ -1,5 +1,11 @@
 # Emolysis template SDK
 
+**An entire data team. One download.** Emolysis is the agentic lakehouse for data
+engineering and analytics: we're building a team of agents you can direct from your
+laptop to investigate business questions, develop dashboards, and build and test
+pipelines for your data platform. Those pipelines start from templates; this SDK is
+their public format.
+
 The template format, a validator and a local test runner for Emolysis pipeline
 templates. A template implements one pipeline shape (SCD Type 2, CDC merge, aggregation,
 ...) for one platform (Databricks, Snowflake, Microsoft Fabric, or DuckDB for local-only
