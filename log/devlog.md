@@ -2,6 +2,14 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-18 · docs: architecture review in AGENTS.md (green)
+
+- Landed: one ground rule in `AGENTS.md`: a contract change is checked with the architect
+  session before code; milestones and deviations are reported to it (emolysis/rules
+  `standards/architecture-review.md`).
+- Numbers: docs only.
+- Still open: none.
+
 ## 2026-10-18 · docs: the new positioning (green)
 
 - Landed: `README.md` and `AGENTS.md` open with the positioning: "An entire data team. One

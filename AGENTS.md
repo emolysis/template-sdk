@@ -53,6 +53,9 @@ data stays on the machine: prompts go to the model provider the user chooses.
   under test.
 - Library code is typed (mypy strict). The public API is `emolysis_template_sdk.__all__`
   plus the CLI; changing either updates `docs/specs/sdk.md`.
+- Architecture review: a change to format v0 or to the public API goes through the
+  architecture review in emolysis/rules (private) before code, if you have access; the
+  pull request then says `Architecture: go (<date>)` or `Architecture: pending`.
 - Every change ships with tests.
 - Public/private boundary: this repository is public. Nothing about internal
   architecture, private repos or third-party origins. Describe the format and the SDK in
