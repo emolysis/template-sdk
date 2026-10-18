@@ -2,6 +2,14 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-18 · docs: present tense for public copy (green)
+
+- Landed: the README intro and the "What we are building" block in `AGENTS.md` describe
+  Emolysis in the present tense (founder decision of 2026-10-18); availability stays a
+  status line ("not yet available").
+- Numbers: docs only.
+- Still open: none.
+
 ## 2026-10-18 · docs: architecture review in AGENTS.md (green)
 
 - Landed: one ground rule in `AGENTS.md`: a contract change is checked with the architect
