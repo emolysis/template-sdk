@@ -4,6 +4,9 @@ Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
 ## 2026-10-18 · docs: present tense for public copy (green)
 
+- Landed: the present-tense lines follow the founder's Notion page word for word
+  ("Emolysis puts a team of agents at your direction from your laptop"; "Direct a team of
+  agents from your laptop").
 - Landed: the README intro and the "What we are building" block in `AGENTS.md` describe
   Emolysis in the present tense (founder decision of 2026-10-18); availability stays a
   status line ("not yet available").

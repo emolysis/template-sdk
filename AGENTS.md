@@ -9,7 +9,7 @@ MIT.
 ## What we are building
 
 **An entire data team. One download.** Emolysis is the agentic lakehouse for data
-engineering and analytics: a team of agents you direct from your laptop to investigate
+engineering and analytics. Direct a team of agents from your laptop to investigate
 business questions, develop dashboards, and build and test pipelines for your data
 platform. The person directs the work and reviews the results; production pipelines run
 on the user's own data platform. Nothing is released yet.
