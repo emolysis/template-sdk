@@ -17,7 +17,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: review-${{ github.event.pull_request.number }}
+  # One review at a time per pull request. A label other than `review` gets a
+  # group of its own, so adding it cancels no running review.
+  group: ${{ (github.event.action != 'labeled' || github.event.label.name == 'review') && format('review-{0}', github.event.pull_request.number) || format('review-skip-{0}', github.run_id) }}
   cancel-in-progress: true
 
 jobs:
