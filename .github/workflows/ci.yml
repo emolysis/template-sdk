@@ -3,17 +3,33 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - log/**
+      - ROADMAP.md
+      - docs/product/**
+      - AGENTS.md
+      - CLAUDE.md
   pull_request:
+    # The jobs skip drafts; ready_for_review runs them when a draft is marked ready.
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - log/**
+      - ROADMAP.md
+      - docs/product/**
+      - AGENTS.md
+      - CLAUDE.md
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   gate:
+    # Opening a pull request as a draft starts no runner.
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

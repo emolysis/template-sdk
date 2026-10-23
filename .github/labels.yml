@@ -18,3 +18,6 @@
 - name: blocked
   color: "b60205"
   description: Waiting on something outside this repository
+- name: review
+  color: "0e8a16"
+  description: Ask the automated review for another round (remove and add again)

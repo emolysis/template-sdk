@@ -2,6 +2,23 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-23 · ci: a draft pull request runs its checks when it is marked ready (green)
+
+- Landed: `ci.yml` lists `ready_for_review` in its `pull_request` types; its jobs skip drafts, and the default types never fire when a draft is marked ready, so a draft ran nothing until its next push.
+- Numbers: one workflow line.
+- Still open: none.
+
+## 2026-10-20 · ci: minute saving in the workflows
+
+- Landed: `ci.yml` ignores `log/**`, `ROADMAP.md`, `docs/product/**`, `AGENTS.md` and
+  `CLAUDE.md` on push and pull request (the tests read `docs/format.md` and the specs,
+  which stay in), cancels the run a newer push supersedes on every ref, and skips draft
+  pull requests; `claude-review.yml` reviews once per pull request (`opened`,
+  `ready_for_review`, the `review` label), never on every push; the `review` label.
+  Workflow files only; validated with actionlint, the gate was not run.
+- Numbers: three workflow files, one label.
+- Still open: lands with the next pull request; no pull request while the freeze holds.
+
 ## 2026-10-18 · docs: present tense for public copy (green)
 
 - Landed: the present-tense lines follow the founder's Notion page word for word
