@@ -2,6 +2,12 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-23 · ci: a draft pull request runs its checks when it is marked ready (green)
+
+- Landed: `ci.yml` lists `ready_for_review` in its `pull_request` types; its jobs skip drafts, and the default types never fire when a draft is marked ready, so a draft ran nothing until its next push.
+- Numbers: one workflow line.
+- Still open: none.
+
 ## 2026-10-20 · ci: minute saving in the workflows
 
 - Landed: `ci.yml` ignores `log/**`, `ROADMAP.md`, `docs/product/**`, `AGENTS.md` and
