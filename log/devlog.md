@@ -2,6 +2,12 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-25 · render: write_identifier and write_table are public; the package imports names on first use (green)
+
+- Landed: `write_identifier` and `write_table` are in `__all__` and `docs/specs/sdk.md`. The package's `__init__` imports each public name on its first use (a module `__getattr__`, the real imports under `TYPE_CHECKING`, `__all__` otherwise unchanged), so importing the package loads none of its modules and the two functions load neither DuckDB nor the runner. `render` and `validate` name both a function and its module; the package keeps each name bound to the function when its module is imported.
+- Numbers: 612 tests pass (+30): a fresh import loads only the package; the two functions load `reserved` and its word list, no DuckDB, YAML, jsonschema or runner; each of the 25 public names resolves to its module's object; `render` and `validate` stay functions once the runner is imported. The first `task gate` run failed one test, `test_fuzz.py::test_expressions_render_one_select_item_each` (611 passed); the second passed in full.
+- Still open: that fuzz failure is in code this change does not touch and replays the same on main (33c2736). The `expressions` items `` :`'` `` and `` :`:` `` pass `check_value` on `databricks` and `spark` but render as `:'` and `::`, which do not parse. Hypothesis finds them only by chance. The fix tightens what an `expressions` item accepts, which is a format change.
+
 ## 2026-10-25 · runner: a statement transpiled to DuckDB quotes every identifier DuckDB reserves (green)
 
 - Landed: `transpile_to_duckdb` quotes every identifier DuckDB reserves before SQLGlot writes DuckDB (`quote_duckdb_reserved` in `reserved.py`, from the list the SDK ships). SQLGlot 30.22's DuckDB writer quotes only 55 of DuckDB's 75; `group`, `end`, `asc`, `desc`, `in`, `qualify` and 14 more stay bare, so a Databricks or Spark template with a column named `group` failed its local test while the platform accepted it. `docs/format.md` section 8 and the changelog row of 2026-10-25.
