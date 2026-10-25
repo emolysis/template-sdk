@@ -1,0 +1,7 @@
+-- Spark SQL for a Fabric lakehouse: backticks, nvl and IF.
+CREATE OR REPLACE TABLE people_clean AS
+SELECT
+  `id`,
+  nvl(`name`, 'unknown') AS name,
+  IF(`name` IS NULL, true, false) AS name_was_missing
+FROM people;

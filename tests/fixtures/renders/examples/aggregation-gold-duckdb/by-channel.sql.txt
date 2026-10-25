@@ -1,0 +1,7 @@
+-- Aggregation / gold on DuckDB: rebuild a gold table with one row per group.
+CREATE OR REPLACE TABLE daily_sales AS
+SELECT
+    order_date, region, channel,
+    COUNT(*) AS row_count, SUM(amount) AS total_amount, MAX(amount) AS largest_amount
+FROM sales
+GROUP BY order_date, region, channel;

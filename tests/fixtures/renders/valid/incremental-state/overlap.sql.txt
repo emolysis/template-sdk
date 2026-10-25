@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS events_all AS
+SELECT * FROM events WHERE FALSE;
+
+INSERT INTO events_all
+SELECT s.*
+FROM events AS s
+WHERE NOT EXISTS (
+  SELECT 1 FROM events_all AS t WHERE t.id = s.id
+);

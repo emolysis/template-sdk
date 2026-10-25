@@ -91,13 +91,15 @@ all data stays on the machine: prompts go to the model provider the user chooses
 | Command               | What it does                                                         |
 | --------------------- | -------------------------------------------------------------------- |
 | `task setup`          | `uv sync --locked` into `.venv`                                      |
-| `task gate`           | lint, typecheck, test, fixtures:check, examples, package; what CI runs |
+| `task gate`           | lint, typecheck, test, fixtures:check, reserved:check, examples, package; what CI runs |
 | `task fmt`            | ruff format and ruff check --fix, in place                           |
 | `task lint`           | ruff format --check and ruff check                                   |
 | `task typecheck`      | mypy strict on `src/`, `scripts/`, `tests/`                          |
 | `task test`           | pytest including hypothesis fuzz; `task test -- -k render` to filter |
 | `task fixtures`       | rewrite every Parquet fixture from `scripts/make_fixtures.py`        |
 | `task fixtures:check` | fail if a committed fixture differs from its definition              |
+| `task reserved`       | rewrite DuckDB's reserved keywords from the installed DuckDB         |
+| `task reserved:check` | fail if the committed DuckDB keywords differ from the installed ones |
 | `task examples`       | `emo-template validate` and `test` on every example                  |
 | `task package`        | build the wheel in a temp dir and check it ships the schemas         |
 | `uv run emo-template` | the CLI from the working tree                                        |

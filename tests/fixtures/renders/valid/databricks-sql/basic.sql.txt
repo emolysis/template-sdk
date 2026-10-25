@@ -1,0 +1,11 @@
+-- Spark SQL that needs transpiling: backticks, IF, nvl, STRING and concat_ws, in the
+-- entry and in the measures.
+CREATE OR REPLACE TABLE size_bands AS
+SELECT
+  region, size_band,
+  CONCAT_WS('-', `region`, CAST(COUNT(*) AS STRING)) AS label, SUM(COALESCE(amount, 0)) AS total_amount
+FROM (
+  SELECT *, IF(nvl(amount, 0) >= 100, 'large', 'small') AS size_band
+  FROM orders
+) AS banded
+GROUP BY region, size_band;

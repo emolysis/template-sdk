@@ -21,6 +21,8 @@ src/emolysis_template_sdk/
   problems.py    Problem, errors(), TemplateError, RenderError
   yamlio.py      strict YAML loader (core-schema scalars, duplicate keys rejected)
   schemas/       template.v0.schema.json, profile_constraints.v0.schema.json
+  reserved_duckdb.py  DuckDB's reserved keywords, written by scripts/make_reserved_words.py
+  reserved.py    each dialect's reserved words; how an identifier slot value is written
   slots.py       Slot, value checks per slot type, placeholder scan, substitution,
                  SQL and Python rendering of values
   template.py    Template and ProfileConstraints (the loaded, valid form)
@@ -76,11 +78,13 @@ run_tests(dir): validate ─> load_template ─> per case:
 Substitution is a single regular expression over the entry text: `{{ name }}` with optional
 spaces or tabs. Anything else that looks like template syntax is a validation error, so
 there is no hidden logic in an entry file: what you read is what runs, plus values.
-Values are checked by type before they are rendered. SQL rendering leaves identifiers,
-`expression` values and enum values verbatim, parses each `expressions` item and has
-SQLGlot write it back in the template's dialect (so the rendered text is exactly one
-select-list item per entry), and asks SQLGlot for dialect-correct string, boolean and
-interval literals; Python rendering produces Python literals.
+Values are checked by type before they are rendered. SQL rendering writes an identifier
+quoted when the dialect reserves it (`reserved.py`, from lists that ship with the SDK) and
+verbatim otherwise, leaves `expression` and enum values verbatim, parses each
+`expressions` item and has SQLGlot write it back in the template's dialect (so the
+rendered text is exactly one select-list item per entry), and asks SQLGlot for
+dialect-correct string, boolean and interval literals; Python rendering produces Python
+literals.
 
 ## Test runner
 

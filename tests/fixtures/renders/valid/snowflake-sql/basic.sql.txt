@@ -1,0 +1,9 @@
+-- Snowflake SQL that needs transpiling: IFF, ZEROIFNULL, :: casts and QUALIFY.
+CREATE OR REPLACE TABLE orders AS
+SELECT
+  order_id,
+  region,
+  IFF(ZEROIFNULL(amount) >= 100, 'large', 'small') AS size_band,
+  ZEROIFNULL(amount)::NUMBER(10, 2) AS amount
+FROM orders_raw
+QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY loaded_at DESC) = 1;

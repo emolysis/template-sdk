@@ -1,0 +1,7 @@
+-- Aggregation / gold on DuckDB: rebuild a gold table with one row per group.
+CREATE OR REPLACE TABLE daily_revenue AS
+SELECT
+    order_date, region,
+    COUNT(*) FILTER(WHERE status <> 'cancelled') AS order_count, SUM(amount) FILTER(WHERE status <> 'cancelled') AS revenue
+FROM orders
+GROUP BY order_date, region;

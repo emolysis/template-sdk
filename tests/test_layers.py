@@ -11,6 +11,8 @@ ORDER = [
     "spec",
     "problems",
     "yamlio",
+    "reserved_duckdb",
+    "reserved",
     "slots",
     "template",
     "validate",

@@ -16,6 +16,7 @@ import sqlglot
 from sqlglot import exp
 from sqlglot.errors import ErrorLevel, SqlglotError
 
+from .reserved import write_identifier, write_table
 from .spec import DURATION_RE, DURATION_UNITS, IDENTIFIER_RE, TABLE_RE
 
 
@@ -272,9 +273,13 @@ def render_value(slot: Slot, value: object, language: str, dialect: str) -> str:
 
 def _render_sql(slot: Slot, value: object, dialect: str) -> str:
     kind = slot.type
+    if kind in ("identifier", "column"):
+        return write_identifier(str(value), dialect)
+    if kind == "table":
+        return write_table(str(value), dialect)
     if kind == "columns":
         assert isinstance(value, list)
-        return ", ".join(str(item) for item in value)
+        return ", ".join(write_identifier(str(item), dialect) for item in value)
     if kind == "expressions":
         assert isinstance(value, list)
         return ", ".join(normalize_select_item(str(item), dialect) for item in value)
@@ -291,7 +296,7 @@ def _render_sql(slot: Slot, value: object, dialect: str) -> str:
         amount, unit, _ = parsed
         interval = exp.Interval(this=exp.Literal.string(str(amount)), unit=exp.Var(this=unit))
         return interval.sql(dialect=dialect)
-    # identifier, table, column, expression, enum: verbatim
+    # expression, enum: verbatim
     return str(value)
 
 

@@ -199,8 +199,9 @@ platform.
   `CLUSTER BY`) and maintenance statements cannot be transpiled.
 - **Snowflake.** `IFF`, `ZEROIFNULL`, `::` casts and `QUALIFY` transpile. `DATEADD`
   returns a timestamp locally, as above. `TO_VARCHAR` with a format string cannot be
-  transpiled. Unquoted identifiers are upper-cased by Snowflake but not by DuckDB; slot
-  values are never quoted, so prefer lower-case names.
+  transpiled. Unquoted identifiers are upper-cased by Snowflake but not by DuckDB. A slot
+  value that Snowflake reserves, such as `order`, is written quoted in upper case
+  (`"ORDER"`); write your own names in the entry file in lower case and unquoted.
 - **Fabric warehouses (T-SQL)** cannot be expressed in v0; `fabric` templates are Spark SQL.
 - **DuckDB** templates run as written.
 
