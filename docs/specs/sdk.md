@@ -13,6 +13,9 @@ Before 1.0 the API may change in any minor release; every change is recorded in
 - Ships `schemas/template.v0.schema.json` and `schemas/profile_constraints.v0.schema.json`
   as package data.
 - Public names are exactly `emolysis_template_sdk.__all__`.
+- Importing the package loads none of its modules: each public name is imported on its
+  first use. `write_identifier` and `write_table` load neither DuckDB nor the runner, so a
+  caller that only writes names (a SQL transpiler) does not pay for templates.
 
 ## Data types
 
@@ -82,6 +85,14 @@ problems), `cases`; `ok` is true when the template is valid and no case failed;
 
 `manifest_schema()`, `constraints_schema()`
 : Copies of the shipped JSON Schemas.
+
+`write_identifier(name, dialect) -> str`
+: One identifier as a slot value renders in `dialect` (`docs/format.md` section 4): quoted
+  when the dialect reserves it, in the case the dialect holds an unquoted name (Snowflake
+  `"ORDER"`, DuckDB `"order"`), else as given. `name` matches `[A-Za-z_][A-Za-z0-9_]*`.
+
+`write_table(name, dialect) -> str`
+: A table name of one to three parts, each written as `write_identifier` writes it.
 
 Constants: `FORMAT_V0`, `SHAPES` (id -> display name), `PLATFORMS` (id -> display name,
 including `duckdb`), `DIALECTS` (platform -> SQLGlot dialect), `SLOT_TYPES`.
