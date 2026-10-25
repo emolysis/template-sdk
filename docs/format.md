@@ -169,8 +169,10 @@ Details:
   upper case, comments are dropped, an alias is always written with `AS`, and SQLGlot may
   write a construct in an equivalent form for the dialect (Snowflake has no `FILTER`
   clause, so `count(*) FILTER (WHERE x)` becomes `COUNT_IF(x)`). The rendered text is
-  therefore exactly one select-list item per list entry. In Python the value renders as a
-  list of the strings as written.
+  therefore exactly one select-list item per list entry. An item whose written form does
+  not parse again in the template's dialect is not a valid value (`slot-value-invalid`):
+  in Spark SQL, SQLGlot reads `` :`'` `` and writes `:'`, which no parser accepts. In
+  Python the value renders as a list of the strings as written.
 - `duration` units: `s`, `sec`, `second(s)`, `m`, `min`, `minute(s)`, `h`, `hr`,
   `hour(s)`, `d`, `day(s)`, `w`, `week(s)`, any capitalization, amount 0 to 999999999.
 - Literals in SQL (`string`, `boolean`, `duration`) are written by SQLGlot for the
@@ -443,3 +445,4 @@ or fail a test case; warnings do not.
 | v0     | 0.1.0 | 2026-10-12 | New slot type `expressions` (section 4). Literal rendering per dialect stated with examples (section 4). Testing executes the template (section 8). |
 | v0     | 0.1.0 | 2026-10-25 | An identifier slot value that the dialect reserves is written quoted (section 4, "Identifiers and reserved words"). Any other value renders as before. |
 | v0     | 0.1.0 | 2026-10-25 | A statement transpiled to DuckDB for a test quotes every identifier DuckDB reserves (section 8). |
+| v0     | 0.1.0 | 2026-10-25 | An `expressions` item whose written form does not parse again in the template's dialect is refused (section 4, `slot-value-invalid`). Such an item rendered SQL that does not parse; every other item renders as before. |

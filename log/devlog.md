@@ -2,6 +2,13 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-25 · validate: an `expressions` item whose written form does not parse is refused (green)
+
+- Landed: `check_select_item` reads back the form SQLGlot writes for an `expressions` item and refuses the item when that form does not parse in the template's dialect (`slot-value-invalid`). In `databricks` and `spark`, SQLGlot reads `` :`'` `` and `` :`:` `` and writes `:'` and `::`, which nothing parses, so such a value rendered broken SQL. `docs/format.md` section 4 states the rule; changelog row of 2026-10-25. This closes the fuzz failure the previous entry left open: `test_fuzz.py::test_expressions_render_one_select_item_each` found those items only by chance.
+- Numbers: 4 new tests (2 items, 2 dialects); 616 pass; the fuzz suite passed three runs in a row.
+- Decisions: the existing code `slot-value-invalid` fits ("a value does not fit its slot type"), so no new code or fixture directory.
+- Still open: none.
+
 ## 2026-10-25 · render: write_identifier and write_table are public; the package imports names on first use (green)
 
 - Landed: `write_identifier` and `write_table` are in `__all__` and `docs/specs/sdk.md`. The package's `__init__` imports each public name on its first use (a module `__getattr__`, the real imports under `TYPE_CHECKING`, `__all__` otherwise unchanged), so importing the package loads none of its modules and the two functions load neither DuckDB nor the runner. `render` and `validate` name both a function and its module; the package keeps each name bound to the function when its module is imported.
