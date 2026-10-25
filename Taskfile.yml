@@ -50,6 +50,16 @@ tasks:
     cmds:
       - uv run --locked python scripts/make_fixtures.py --check
 
+  reserved:
+    desc: Rewrite DuckDB's reserved keywords from scripts/make_reserved_words.py
+    cmds:
+      - uv run --locked python scripts/make_reserved_words.py
+
+  reserved:check:
+    desc: Check the committed DuckDB reserved keywords against the installed DuckDB
+    cmds:
+      - uv run --locked python scripts/make_reserved_words.py --check
+
   examples:
     desc: Validate and test every template under examples/ with the CLI
     cmds:
@@ -66,11 +76,12 @@ tasks:
         uv run --locked python scripts/check_wheel.py "$out"
 
   gate:
-    desc: Everything CI checks (lint, typecheck, test, fixtures:check, examples, package)
+    desc: Everything CI checks (lint, typecheck, test, fixtures:check, reserved:check, examples, package)
     cmds:
       - task: lint
       - task: typecheck
       - task: test
       - task: fixtures:check
+      - task: reserved:check
       - task: examples
       - task: package

@@ -37,8 +37,9 @@
 - Transpiled date arithmetic (`date_add`, `DATEADD`) returns `TIMESTAMP` on DuckDB and
   shows up as a type mismatch; authors must cast by hand.
 - No escape for a literal `{{` in entry files.
-- Identifiers are never quoted: reserved words and case-sensitive Snowflake names are not
-  handled.
+- A Snowflake object created with a quoted lower- or mixed-case name cannot be named by a
+  slot value; reserved words in `expression` and `expressions` values are the author's to
+  quote. Spark's `enforceReservedKeywords` set to `true` is not handled.
 - `profile_version`, `requires` and `forbids` are only syntax-checked; there is no
   published list of feature names.
 - Floating-point columns compare exactly; there is no tolerance option.
@@ -62,3 +63,5 @@
 - 2026-10-12: slot type `expressions`; per-dialect literal rendering documented and
   tested; `aggregation-gold` example on `group_by` and `measures`; warning that testing
   executes templates.
+- 2026-10-25: identifier slot values that the dialect reserves are written quoted, in the
+  case the dialect gives the unquoted name (Snowflake's 92 keywords, DuckDB's 75).

@@ -137,10 +137,10 @@ slots:
 
 | Type          | Value in YAML                                                  | SQL rendering                                                    | Python rendering        |
 | ------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------- |
-| `identifier`  | string matching `[A-Za-z_][A-Za-z0-9_]*`                       | verbatim                                                         | string literal          |
-| `table`       | 1 to 3 identifiers joined by `.`                               | verbatim                                                         | string literal          |
-| `column`      | identifier                                                     | verbatim                                                         | string literal          |
-| `columns`     | non-empty list of identifiers, unique ignoring case            | joined with `, `                                                 | list of string literals |
+| `identifier`  | string matching `[A-Za-z_][A-Za-z0-9_]*`                       | verbatim, or quoted when the dialect reserves it (below)         | string literal          |
+| `table`       | 1 to 3 identifiers joined by `.`                               | each part as `identifier`, joined with `.`                       | string literal          |
+| `column`      | identifier                                                     | as `identifier`                                                  | string literal          |
+| `columns`     | non-empty list of identifiers, unique ignoring case            | each item as `identifier`, joined with `, `                      | list of string literals |
 | `expression`  | one SQL expression in the template's dialect                   | verbatim                                                         | string literal          |
 | `expressions` | non-empty list of SQL expressions, each with an optional alias | each item rewritten by SQLGlot for the dialect, joined with `, ` | list of string literals |
 | `string`      | any string                                                     | string literal, quoted and escaped for the dialect               | string literal          |
@@ -151,8 +151,9 @@ slots:
 
 Details:
 
-- Identifiers are never quoted. A name that needs quoting (a reserved word, mixed case on
-  Snowflake) is the author's problem in v0; prefer plain lower-case names.
+- An `identifier`, `column`, `columns` item or `table` part that the template's dialect
+  reserves is written as a quoted identifier naming the same object as the unquoted word
+  would; any other is written verbatim. See "Identifiers and reserved words" below.
 - `expression` must parse as exactly one SQL expression in the template's dialect
   (section 3, Platforms): no `;`, no top-level query (a scalar subquery must be in
   parentheses), no alias. For a Python entry the check uses the same dialect, since the
@@ -184,6 +185,50 @@ Details:
 
   A rendered string literal parses back, in its dialect, to exactly the value given.
 - Python string literals are Python `repr()` of the value.
+
+### Identifiers and reserved words
+
+A slot value that names a table or a column is written verbatim unless the template's
+dialect reserves it. A reserved one is written as a quoted identifier, in the case the
+dialect gives the same name unquoted, so the quoted name and the unquoted word name the
+same object. The check ignores case: `Order` and `ORDER` are the word `order`.
+
+| Dialect                         | Reserved words                                                              | `order` is written | Lists and rules                                                                |
+| ------------------------------- | --------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------ |
+| `snowflake`                     | the 92 keywords of Snowflake's reserved and limited keywords table          | `"ORDER"`          | https://docs.snowflake.com/en/sql-reference/reserved-keywords, read 2026-10-25 |
+| `duckdb`                        | the 75 keywords `duckdb_keywords()` puts in the `reserved` category (1.5.6) | `"order"`          | https://duckdb.org/docs/stable/sql/dialect/keywords_and_identifiers            |
+| `databricks`                    | none for slot values                                                        | `order`            | https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-reserved-words  |
+| `spark` (the `fabric` platform) | none for slot values                                                        | `order`            | https://spark.apache.org/docs/latest/sql-ref-ansi-compliance.html              |
+
+- **Snowflake** stores and resolves an unquoted name in upper case, and a quoted name
+  exactly as written
+  ([identifier rules](https://docs.snowflake.com/en/sql-reference/identifiers-syntax)). So
+  a reserved name is written in upper case: `order`, `Order` and `ORDER` all become
+  `"ORDER"`, the column a bare `order` would name if Snowflake allowed it. Examples:
+  `group` becomes `"GROUP"`, `start` becomes `"START"`, and the table `analytics.group.orders`
+  becomes `analytics."GROUP".orders`.
+- **DuckDB** matches names without regard to case, quoted or not
+  ([keywords and identifiers](https://duckdb.org/docs/stable/sql/dialect/keywords_and_identifiers)).
+  A reserved name keeps the case it was given: `order` becomes `"order"`.
+- **Databricks** does not enforce the ANSI reserved words. It needs back-ticks only around a
+  few words used as a table alias (`JOIN`, `LEFT`, `ON` and the others its page lists), and
+  it keeps some catalog and schema names for its own use, such as `INFORMATION_SCHEMA`
+  ([reserved words](https://docs.databricks.com/aws/en/sql/language-manual/sql-ref-reserved-words)).
+  Slot values are written verbatim. A template that uses an `identifier` slot as a table
+  alias must not let it take one of the alias words.
+- **Spark**, which `fabric` templates are written in, reserves no word as an identifier
+  (a few cannot be a table alias) while `spark.sql.ansi.enforceReservedKeywords` is
+  `false`, its default
+  ([ANSI compliance](https://spark.apache.org/docs/latest/sql-ref-ansi-compliance.html)).
+  Slot values are written verbatim. A session with that setting `true` is outside v0's
+  guarantee.
+- The lists ship with the SDK; rendering never asks a database. A word on a list that the
+  platform would also accept bare still names the same object when quoted, so a list errs
+  on the side of quoting.
+- Not covered: an `expression` or `expressions` value is written as given or as SQLGlot
+  writes it, so a reserved column name inside one must be quoted by whoever writes the
+  value, in the dialect's own way. A Snowflake object created with a quoted lower- or
+  mixed-case name (`"order"`, `"CustomerID"`) cannot be named by a slot value.
 
 ## 5. Entry file and substitution
 
@@ -392,3 +437,4 @@ or fail a test case; warnings do not.
 | ------ | ----- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v0     | 0.1.0 | 2026-10-12 | First draft.                                                                                                                                        |
 | v0     | 0.1.0 | 2026-10-12 | New slot type `expressions` (section 4). Literal rendering per dialect stated with examples (section 4). Testing executes the template (section 8). |
+| v0     | 0.1.0 | 2026-10-25 | An identifier slot value that the dialect reserves is written quoted (section 4, "Identifiers and reserved words"). Any other value renders as before. |

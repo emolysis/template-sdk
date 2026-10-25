@@ -1,0 +1,2 @@
+CREATE OR REPLACE TABLE target AS
+SELECT * FROM source;

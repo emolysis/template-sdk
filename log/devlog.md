@@ -2,6 +2,15 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-25 · render: identifier slot values that the dialect reserves are written quoted (green)
+
+- Landed: an `identifier`, `column`, `columns` item or `table` part that the template's dialect reserves is written as a quoted identifier in the case the dialect gives the unquoted name: `order` is `"ORDER"` on Snowflake and `"order"` on DuckDB; Databricks and Spark write every value verbatim. `docs/format.md` section 4 ("Identifiers and reserved words"), the slot types table and the changelog.
+- Landed: `reserved.py` holds Snowflake's 92 keywords, copied from its reserved-keywords page (read 2026-10-25); `reserved_duckdb.py` holds DuckDB's 75 `reserved` keywords, written by `scripts/make_reserved_words.py` from `duckdb_keywords()` (DuckDB 1.5.6). `task reserved` rewrites it and `task reserved:check`, in the gate, fails when the installed DuckDB differs.
+- Landed: `tests/fixtures/renders/` holds every example's and valid fixture's render per test case from the renderer before this change; a test checks they render byte for byte the same.
+- Numbers: 578 tests pass (+242): exact strings per dialect, each part of a table name, each item of `columns`, every DuckDB word failing bare and working quoted on DuckDB, every Snowflake word parsing as its upper-case quoted column, the DuckDB example run on columns named `group` and `order`, a Snowflake render transpiled and run on DuckDB, 9 renders unchanged.
+- Decisions: the lists ship with the SDK and are never read from a database at render time; quoting is identity-preserving, so a list may hold a word the platform would accept bare. `expression` and `expressions` values are not quoted. Spark's `enforceReservedKeywords` set to `true` is outside v0's guarantee.
+- Still open: a Snowflake object created with a quoted lower- or mixed-case name cannot be named by a slot value.
+
 ## 2026-10-23 · ci: a draft pull request runs its checks when it is marked ready (green)
 
 - Landed: `ci.yml` lists `ready_for_review` in its `pull_request` types; its jobs skip drafts, and the default types never fire when a draft is marked ready, so a draft ran nothing until its next push.

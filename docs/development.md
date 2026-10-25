@@ -25,8 +25,10 @@ task --list    # every task with a description
 3. `test`: pytest, including hypothesis fuzz tests (`tests/test_fuzz.py`).
 4. `fixtures:check`: every Parquet file under `examples/` and `tests/fixtures/` matches its
    definition in `scripts/make_fixtures.py`, and nothing else is there.
-5. `examples`: `emo-template validate` and `emo-template test` on every example.
-6. `package`: builds the wheel into a temp directory and checks it contains the JSON
+5. `reserved:check`: `src/emolysis_template_sdk/reserved_duckdb.py` holds the reserved
+   keywords of the installed DuckDB, from that version (`scripts/make_reserved_words.py`).
+6. `examples`: `emo-template validate` and `emo-template test` on every example.
+7. `package`: builds the wheel into a temp directory and checks it contains the JSON
    Schemas and `py.typed`.
 
 `task fmt` fixes formatting and auto-fixable lint in place. Template entry files under
@@ -60,6 +62,14 @@ DuckDB query; `task fixtures` writes them and `task fixtures:check` (part of the
 compares the committed files with the definitions. Every Parquet file under
 `tests/fixtures/invalid/` and `tests/fixtures/failing/` holds the same generic two-row
 table unless the script says otherwise.
+
+DuckDB's reserved keywords are generated the same way: `task reserved` writes
+`reserved_duckdb.py` from `duckdb_keywords()` of the installed DuckDB, and
+`task reserved:check` (part of the gate) fails when a DuckDB upgrade changed them. The
+Snowflake list in `reserved.py` is copied by hand from the page it names, with the date it
+was read. `tests/fixtures/renders/` holds each example's and valid fixture's render, per
+test case, from before reserved words were quoted; `tests/test_reserved.py` checks they
+still render byte for byte the same.
 
 ### Adding a validator check
 
