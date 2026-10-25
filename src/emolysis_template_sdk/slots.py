@@ -173,11 +173,17 @@ def check_select_item(text: str, dialect: str) -> str | None:
         return parsed
     try:
         with quiet_sqlglot():
-            _generate_select_item(parsed, dialect)
+            written = _generate_select_item(parsed, dialect)
     except SqlglotError as exc:
         return f"SQLGlot cannot write this expression in dialect {dialect}: {_first_line(exc)}"
     except Exception as exc:  # SQLGlot can raise plain errors on odd input
         return f"SQLGlot cannot write this expression in dialect {dialect}: {_first_line(exc)}"
+    if isinstance(_parse_select_item(written, dialect), str):
+        # The rendered item is the written form, so it must read back (`:`'`` in Spark).
+        return (
+            f"SQLGlot writes this expression in dialect {dialect} as {written!r}, "
+            "which does not parse"
+        )
     return None
 
 

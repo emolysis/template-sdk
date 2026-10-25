@@ -73,6 +73,16 @@ def test_problem_names_the_item() -> None:
     assert reason.startswith("item 2: ")
 
 
+@pytest.mark.parametrize("dialect", ["databricks", "spark"])
+@pytest.mark.parametrize("item", [":`'`", ":`:`"])
+def test_an_item_whose_written_form_does_not_parse_is_refused(dialect: str, item: str) -> None:
+    # SQLGlot reads these and writes `:'` and `::`, which it cannot read back (found by
+    # test_fuzz.py), so the item could not render.
+    reason = check_value(SLOT, [item], dialect)
+    assert reason is not None
+    assert "does not parse" in reason
+
+
 def test_items_are_checked_in_the_template_dialect() -> None:
     assert check_value(SLOT, ["`region`"], "databricks") is None
     assert check_value(SLOT, ["`region`"], "duckdb") is not None
