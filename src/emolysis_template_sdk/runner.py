@@ -23,6 +23,7 @@ from sqlglot.errors import ErrorLevel, SqlglotError
 
 from .problems import Problem, TemplateError, errors
 from .render import resolve_slot_values
+from .reserved import quote_duckdb_reserved
 from .slots import quiet_sqlglot, render_with
 from .spec import (
     CASE_SLOTS_FILE,
@@ -228,8 +229,9 @@ def _prepare(template: Template, rendered: str, con: duckdb.DuckDBPyConnection) 
 def transpile_to_duckdb(sql: str, dialect: str, path: str = "") -> list[str] | Problem:
     """Transpile `sql` from `dialect` to DuckDB, one string per statement.
 
-    Returns a `transpile-failed` problem when SQLGlot cannot parse a statement, only
-    understands it as an opaque command, or cannot express it in DuckDB.
+    An identifier DuckDB reserves (`group`, `end`, ...) is written quoted. Returns a
+    `transpile-failed` problem when SQLGlot cannot parse a statement, only understands it
+    as an opaque command, or cannot express it in DuckDB.
     """
     try:
         with quiet_sqlglot():
@@ -251,7 +253,8 @@ def transpile_to_duckdb(sql: str, dialect: str, path: str = "") -> list[str] | P
                 path,
             )
         try:
-            statements.append(statement.sql(dialect="duckdb", unsupported_level=ErrorLevel.RAISE))
+            written = quote_duckdb_reserved(statement)
+            statements.append(written.sql(dialect="duckdb", unsupported_level=ErrorLevel.RAISE))
         except SqlglotError as exc:
             return Problem(
                 "transpile-failed",
