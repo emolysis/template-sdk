@@ -349,6 +349,10 @@ SQLGlot covers most of what templates use, not everything:
 - Platform-only statements (`OPTIMIZE`, `VACUUM`, table properties such as
   `CLUSTER BY` on Databricks) cannot run locally, and v0 has no way to mark a statement
   as platform-only.
+- An identifier DuckDB reserves is written quoted when a statement is transpiled to DuckDB
+  (section 4, "Identifiers and reserved words"), so a column named `group` or `end` that a
+  Databricks or Spark template writes bare runs locally too. SQLGlot's DuckDB writer alone
+  quotes only some of those words.
 - A passing local test shows the logic is right on DuckDB. It does not prove the
   template runs on the platform.
 
@@ -438,3 +442,4 @@ or fail a test case; warnings do not.
 | v0     | 0.1.0 | 2026-10-12 | First draft.                                                                                                                                        |
 | v0     | 0.1.0 | 2026-10-12 | New slot type `expressions` (section 4). Literal rendering per dialect stated with examples (section 4). Testing executes the template (section 8). |
 | v0     | 0.1.0 | 2026-10-25 | An identifier slot value that the dialect reserves is written quoted (section 4, "Identifiers and reserved words"). Any other value renders as before. |
+| v0     | 0.1.0 | 2026-10-25 | A statement transpiled to DuckDB for a test quotes every identifier DuckDB reserves (section 8). |

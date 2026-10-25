@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 
+from sqlglot import exp
+
 from .reserved_duckdb import DUCKDB_RESERVED
 
 SNOWFLAKE_SOURCE = "https://docs.snowflake.com/en/sql-reference/reserved-keywords"
@@ -148,3 +150,22 @@ def write_identifier(name: str, dialect: str) -> str:
 def write_table(name: str, dialect: str) -> str:
     """Write a table name of 1 to 3 parts, each part as `write_identifier` writes it."""
     return ".".join(write_identifier(part, dialect) for part in name.split("."))
+
+
+def quote_duckdb_reserved(tree: exp.Expr) -> exp.Expr:
+    """A copy of `tree` with each unquoted identifier that DuckDB reserves quoted.
+
+    SQLGlot's DuckDB writer quotes only some of DuckDB's reserved words (`group` and `end`
+    stay bare), so a statement transpiled to DuckDB has the others quoted here first.
+    DuckDB matches names case-insensitively, so the quoted name is the same object.
+    """
+    words = RESERVED["duckdb"]
+
+    def quote(node: exp.Expr) -> exp.Expr:
+        if isinstance(node, exp.Identifier) and not node.quoted and node.name.lower() in words:
+            quoted = node.copy()
+            quoted.set("quoted", True)
+            return quoted
+        return node
+
+    return tree.transform(quote)

@@ -14,6 +14,7 @@ from emolysis_template_sdk import Slot, load_template, render, transpile_to_duck
 from emolysis_template_sdk.reserved import (
     RESERVED,
     SNOWFLAKE_RESERVED,
+    quote_duckdb_reserved,
     write_identifier,
     write_table,
 )
@@ -227,6 +228,85 @@ def test_a_snowflake_render_runs_on_duckdb_after_transpiling() -> None:
         (1, "eu", "small", 50.0),
         (2, "us", "small", 0.0),
     ]
+
+
+def _read_as_column(word: str, dialect: str) -> bool:
+    """Whether SQLGlot reads `word`, written bare, as a column in `dialect`."""
+    try:
+        tree = sqlglot.parse_one(f"SELECT {word} FROM t GROUP BY {word}", read=dialect)
+    except sqlglot.errors.SqlglotError:
+        return False
+    column = tree.find(exp.Column)
+    return column is not None and column.name.lower() == word
+
+
+@pytest.mark.parametrize("dialect", ["databricks", "spark"])
+def test_a_column_duckdb_reserves_runs_on_duckdb_after_transpiling(dialect: str) -> None:
+    # Databricks and Spark write these names bare; SQLGlot's DuckDB writer leaves some of
+    # them bare too (`group`, `end`), so transpiling quotes every one DuckDB reserves.
+    words = [word for word in sorted(DUCKDB_RESERVED) if _read_as_column(word, dialect)]
+    assert {"group", "order", "end", "desc", "table"} <= set(words)
+    con = duckdb.connect()
+    try:
+        for word in words:
+            statements = transpile_to_duckdb(
+                f"CREATE OR REPLACE TABLE out AS SELECT {word}, sum(amount) AS total "
+                f"FROM t GROUP BY {word}",
+                dialect,
+            )
+            assert isinstance(statements, list), word
+            con.execute(f'CREATE OR REPLACE TABLE t ("{word}" INTEGER, amount INTEGER)')
+            con.execute("INSERT INTO t VALUES (1, 10), (1, 5), (2, 7)")
+            for statement in statements:
+                con.execute(statement)
+            rows = con.execute("SELECT * FROM out ORDER BY 1").fetchall()
+            assert rows == [(1, 15), (2, 7)], word
+    finally:
+        con.close()
+
+
+def test_a_databricks_render_with_reserved_columns_runs_on_duckdb() -> None:
+    sql = render(
+        load_template(VALID / "databricks-sql"),
+        {
+            "source_table": "raw",
+            "target_table": "out",
+            "group_by": ["group", "order", "end"],
+            "measures": ["sum(amount) AS revenue"],
+            "large_threshold": 100,
+        },
+    )
+    assert "  group, order, end,\n" in sql  # Databricks reserves none of them
+    statements = transpile_to_duckdb(sql, "databricks")
+    assert isinstance(statements, list)
+    assert 'SELECT "group", "order", "end", SUM(amount) AS revenue' in statements[-1]
+    con = duckdb.connect()
+    try:
+        con.execute(
+            'CREATE TABLE raw ("group" VARCHAR, "order" INTEGER, "end" DATE, amount INTEGER)'
+        )
+        con.execute(
+            "INSERT INTO raw VALUES ('a', 1, DATE '2026-10-01', 10), ('a', 1, DATE '2026-10-01', 5)"
+        )
+        for statement in statements:
+            con.execute(statement)
+        rows = con.execute("SELECT * FROM out").fetchall()
+    finally:
+        con.close()
+    assert [(group, order, str(end), int(revenue)) for group, order, end, revenue in rows] == [
+        ("a", 1, "2026-10-01", 15)
+    ]
+
+
+def test_quoting_for_duckdb_keeps_quoted_and_other_names() -> None:
+    tree = sqlglot.parse_one("SELECT `Group`, region, `end` FROM t", read="databricks")
+    written = quote_duckdb_reserved(tree).sql(dialect="duckdb")
+    assert written == 'SELECT "Group", region, "end" FROM t'
+    assert tree.sql(dialect="duckdb") == 'SELECT "Group", region, "end" FROM t'
+    bare = sqlglot.parse_one("SELECT group, region FROM t", read="databricks")
+    assert bare.sql(dialect="duckdb") == "SELECT group, region FROM t"
+    assert quote_duckdb_reserved(bare).sql(dialect="duckdb") == 'SELECT "group", region FROM t'
+    assert bare.sql(dialect="duckdb") == "SELECT group, region FROM t"  # the input is unchanged
 
 
 def _cases() -> list[tuple[Path, Path]]:

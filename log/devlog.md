@@ -2,6 +2,12 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-25 · runner: a statement transpiled to DuckDB quotes every identifier DuckDB reserves (green)
+
+- Landed: `transpile_to_duckdb` quotes every identifier DuckDB reserves before SQLGlot writes DuckDB (`quote_duckdb_reserved` in `reserved.py`, from the list the SDK ships). SQLGlot 30.22's DuckDB writer quotes only 55 of DuckDB's 75; `group`, `end`, `asc`, `desc`, `in`, `qualify` and 14 more stay bare, so a Databricks or Spark template with a column named `group` failed its local test while the platform accepted it. `docs/format.md` section 8 and the changelog row of 2026-10-25.
+- Numbers: 582 tests pass (+4): every DuckDB-reserved word SQLGlot reads bare as a column in Databricks and in Spark (40 each), transpiled and run on DuckDB; a Databricks render with `group`, `order` and `end`; the quoting keeps quoted names and the input tree.
+- Still open: none.
+
 ## 2026-10-25 · render: identifier slot values that the dialect reserves are written quoted (green)
 
 - Landed: an `identifier`, `column`, `columns` item or `table` part that the template's dialect reserves is written as a quoted identifier in the case the dialect gives the unquoted name: `order` is `"ORDER"` on Snowflake and `"order"` on DuckDB; Databricks and Spark write every value verbatim. `docs/format.md` section 4 ("Identifiers and reserved words"), the slot types table and the changelog.
