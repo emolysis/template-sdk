@@ -3,7 +3,8 @@
 For each case, in a fresh in-memory DuckDB database, runs are applied in order. A run
 loads its input tables, executes the rendered entry (transpiled to DuckDB when the
 template targets another platform) and compares every expected table with the table the
-entry produced, ignoring row order. A failing run stops its case.
+entry produced, ignoring row order. A failing run stops its case. A caller that wants to
+stop a long run passes `stop`, which is asked before each case and each run.
 """
 
 from __future__ import annotations
@@ -37,13 +38,14 @@ from .spec import (
 from .template import Template
 from .validate import PathLike, load_case_slots, load_template, validate
 
-CaseStatus = Literal["passed", "failed", "skipped"]
+CaseStatus = Literal["passed", "failed", "skipped", "stopped"]
 _SAMPLE_ROWS = 5
 
 
 @dataclass(frozen=True, slots=True)
 class CaseResult:
-    """Outcome of one test case."""
+    """Outcome of one test case. `stopped`: the run was stopped before the case finished;
+    `runs_passed` counts the runs that passed before it."""
 
     name: str
     status: CaseStatus
@@ -66,19 +68,22 @@ class RunReport:
     """Outcome of `run_tests` for one template directory.
 
     `problems` holds validation problems. When any of them is an error, no case runs and
-    `cases` is empty.
+    `cases` is empty. `stopped` is true when the caller's `stop` ended the run: every case
+    that did not finish has the status `stopped`, and the report is not `ok`.
     """
 
     path: Path
     template_id: str | None
     problems: tuple[Problem, ...]
     cases: tuple[CaseResult, ...]
+    stopped: bool = False
 
     @property
     def ok(self) -> bool:
-        """True when the template is valid and no case failed."""
+        """True when the template is valid, the run was not stopped and no case failed."""
         return (
             self.template_id is not None
+            and not self.stopped
             and not errors(self.problems)
             and all(case.status != "failed" for case in self.cases)
         )
@@ -91,17 +96,22 @@ class RunReport:
             "path": str(self.path),
             "template_id": self.template_id,
             "ok": self.ok,
+            "stopped": self.stopped,
             "problems": [p.to_dict() for p in self.problems],
             "cases": [case.to_dict() for case in self.cases],
         }
 
 
-def run_tests(path: PathLike) -> RunReport:
+def run_tests(path: PathLike, *, stop: Callable[[], bool] | None = None) -> RunReport:
     """Validate the template at `path`, then run every test case on DuckDB.
 
     Never raises for problems in the template or its tests; they are reported in the
     returned `RunReport`. This executes the template's SQL and Python in this process
     with the caller's privileges; run it only on templates you trust.
+
+    `stop`, when given, is called before each case and before each run of a case; when it
+    returns true, nothing more runs and the report is `stopped`, with every case that did
+    not finish marked `stopped`. An exception it raises is not caught.
     """
     root = Path(path)
     problems = validate(root)
@@ -115,8 +125,17 @@ def run_tests(path: PathLike) -> RunReport:
         (c for c in (root / TESTS_DIR).iterdir() if c.is_dir() and not c.name.startswith(".")),
         key=lambda c: c.name,
     )
-    results = tuple(_run_case(template, case) for case in cases)
-    return RunReport(root, template.id, tuple(problems), results)
+    results: list[CaseResult] = []
+    for case in cases:
+        if stop is not None and stop():
+            break
+        results.append(_run_case(template, case, stop))
+        if results[-1].status == "stopped":
+            break  # stopped mid-case: nothing more runs, whatever `stop` answers next
+    stopped = len(results) < len(cases) or any(r.status == "stopped" for r in results)
+    for case in cases[len(results) :]:
+        results.append(CaseResult(case.name, "stopped", len(_runs(case)), 0))
+    return RunReport(root, template.id, tuple(problems), tuple(results), stopped)
 
 
 # --- one case --------------------------------------------------------------------------
@@ -140,7 +159,7 @@ def _runs(case: Path) -> list[Path]:
     )
 
 
-def _run_case(template: Template, case: Path) -> CaseResult:
+def _run_case(template: Template, case: Path, stop: Callable[[], bool] | None = None) -> CaseResult:
     rel = f"{TESTS_DIR}/{case.name}"
     runs = _runs(case)
 
@@ -174,6 +193,8 @@ def _run_case(template: Template, case: Path) -> CaseResult:
         if isinstance(step, Problem):
             return failed(step)
         for done, run in enumerate(runs):
+            if stop is not None and stop():
+                return CaseResult(case.name, "stopped", len(runs), done)
             run_rel = f"{rel}/{RUNS_DIR}/{run.name}"
             problem = _load_inputs(con, run / INPUT_DIR, f"{run_rel}/{INPUT_DIR}")
             if problem is None:
