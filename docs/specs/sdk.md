@@ -35,12 +35,16 @@ substitution), `constraints: ProfileConstraints`, `format`; properties `language
 
 `ProfileConstraints`: `platform`, `profile_version`, `requires`, `forbids`.
 
-`CaseResult`: `name`, `status` (`passed` | `failed` | `skipped`), `runs_total`,
-`runs_passed`, `problems`.
+`CaseResult`: `name`, `status` (`passed` | `failed` | `skipped` | `stopped`),
+`runs_total`, `runs_passed`, `problems`. `stopped`: the run was stopped before the case
+finished (below); `runs_passed` counts the runs that passed before it.
 
 `RunReport`: `path`, `template_id` (None when validation failed), `problems` (validation
-problems), `cases`; `ok` is true when the template is valid and no case failed;
-`count(status)`; `to_dict()`.
+problems), `cases`, `stopped` (false unless `run_tests`' `stop` ended the run); `ok` is
+true when the template is valid, the run was not stopped and no case failed;
+`count(status)`; `to_dict()`, which includes `stopped`. A stopped report is never `ok`,
+and a `stopped` case is never counted as passed: a caller that checks that every case
+passed reads a stopped run as not passed.
 
 `TemplateError(Exception)` carries `problems: list[Problem]`. `RenderError` subclasses it.
 
@@ -66,12 +70,18 @@ problems), `cases`; `ok` is true when the template is valid and no case failed;
   `slot-unknown`, `slot-missing` and `slot-value-invalid` problem at once. Rendering rules
   per slot type and language are in `docs/format.md` section 4.
 
-`run_tests(path) -> RunReport`
+`run_tests(path, *, stop=None) -> RunReport`
 : Validates first; with any validation error it returns a report with no cases. Otherwise
   runs every case (sorted by name) with the semantics in `docs/format.md` section 8 and
   returns the report. Does not raise for problems in the template or its tests. Executes
   the template's SQL (in DuckDB) and Python (in this process) with the caller's
   privileges; it does not sandbox them.
+: `stop` (`Callable[[], bool] | None`, since 2026-10-27) is for a caller that wants to
+  stop a long run. It is called before each case and before each run of a case. When it
+  returns true, nothing more runs: the case under way, if any, and every case after it
+  get the status `stopped` with no problem, and the report has `stopped: true`. Without
+  `stop`, or with one that never returns true, the report is the same as before. An
+  exception `stop` raises is not caught. The CLI passes no `stop`.
 
 `transpile_to_duckdb(sql, dialect, path="") -> list[str] | Problem`
 : SQLGlot transpilation used by the runner, one DuckDB statement per input statement, or

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
 from conftest import EXAMPLE, FAILING, INVALID, VALID, copy_fixture, subdirs
-from emolysis_template_sdk import Problem, run_tests, transpile_to_duckdb
+from emolysis_template_sdk import Problem, RunReport, run_tests, transpile_to_duckdb
 from emolysis_template_sdk.runner import type_family
 
 FAILING_CODES = {
@@ -213,3 +214,72 @@ def test_incomparable_values_are_reported(minimal: Path) -> None:
     )
     [case] = run_tests(minimal).cases
     assert [p.code for p in case.problems] == ["compare-failed"]
+
+
+def _stop_on(call: int) -> tuple[list[int], Callable[[], bool]]:
+    """A `stop` that answers true from its `call`-th call on, and the calls it got."""
+    calls: list[int] = []
+
+    def stop() -> bool:
+        calls.append(len(calls) + 1)
+        return len(calls) >= call
+
+    return calls, stop
+
+
+def _summary(report: RunReport) -> list[tuple[str, str, int, int]]:
+    return [(c.name, c.status, c.runs_passed, c.runs_total) for c in report.cases]
+
+
+def test_a_stop_before_the_first_case_runs_nothing() -> None:
+    calls, stop = _stop_on(1)
+    report = run_tests(EXAMPLE, stop=stop)
+    assert calls == [1]
+    assert report.stopped
+    assert not report.ok
+    assert _summary(report) == [
+        ("by-channel", "stopped", 0, 1),
+        ("known-totals", "stopped", 0, 2),
+    ]
+    assert report.count("passed") == 0
+    assert report.to_dict()["stopped"] is True
+
+
+def test_a_stop_between_two_cases_keeps_the_first() -> None:
+    # Asked before by-channel, before its run, then before known-totals.
+    calls, stop = _stop_on(3)
+    report = run_tests(EXAMPLE, stop=stop)
+    assert calls == [1, 2, 3]
+    assert (report.stopped, report.ok) == (True, False)
+    assert _summary(report) == [
+        ("by-channel", "passed", 1, 1),
+        ("known-totals", "stopped", 0, 2),
+    ]
+
+
+def test_a_stop_between_two_runs_of_a_case_counts_the_runs_passed() -> None:
+    # The fifth question comes before known-totals' second run.
+    calls, stop = _stop_on(5)
+    report = run_tests(EXAMPLE, stop=stop)
+    assert calls == [1, 2, 3, 4, 5]
+    assert (report.stopped, report.ok) == (True, False)
+    assert _summary(report) == [
+        ("by-channel", "passed", 1, 1),
+        ("known-totals", "stopped", 1, 2),
+    ]
+    assert report.cases[1].problems == ()
+
+
+def test_a_run_never_stopped_reports_as_without_stop() -> None:
+    calls: list[None] = []
+
+    def never() -> bool:
+        calls.append(None)
+        return False
+
+    report = run_tests(EXAMPLE, stop=never)
+    assert len(calls) == 5  # two cases and three runs
+    assert report == run_tests(EXAMPLE)
+    assert report.to_dict() == run_tests(EXAMPLE).to_dict()
+    assert (report.stopped, report.ok) == (False, True)
+    assert report.to_dict()["stopped"] is False

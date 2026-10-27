@@ -5,7 +5,7 @@ Library API:
 - `load_template(path) -> Template` loads a template, raising `TemplateError` if invalid.
 - `validate(path) -> list[Problem]` checks a template directory and never raises.
 - `render(template, slot_values) -> str` substitutes slot values into the entry file.
-- `run_tests(path) -> RunReport` runs every test case on DuckDB.
+- `run_tests(path, *, stop=None) -> RunReport` runs every test case on DuckDB.
 - `new_template(shape, platform, dir)` writes a valid skeleton.
 - `write_identifier(name, dialect)` and `write_table(name, dialect)` write a name as a slot
   value renders in that dialect.

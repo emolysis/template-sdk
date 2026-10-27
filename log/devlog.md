@@ -2,6 +2,13 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-10-27 · runner: a caller can stop a long run of the tests (green)
+
+- Landed: `run_tests(path, *, stop=None)`. `stop` is called before each case and before each run of a case; when it returns true, nothing more runs. The case under way and every later case get the new status `stopped` (no problem; `runs_passed` counts the runs that passed before the stop), the report has `stopped: true`, also in `to_dict()`, and a stopped report is never `ok`. Without `stop` the report is as before. `docs/specs/sdk.md` (`CaseResult`, `RunReport`, `run_tests`). Format v0 is unchanged, so `docs/format.md` and its changelog are untouched; the CLI passes no `stop` and prints as before.
+- Numbers: 4 new tests on the example template (two cases, three runs): a stop before the first case, between the two cases and between the two runs of the second; a `stop` that never answers true gives a report equal to the one without it.
+- Decisions: one new status, `stopped`, for a case cut between its runs and for a case never started; an exception from `stop` propagates (it is the caller's code, not the template's).
+- Still open: none.
+
 ## 2026-10-25 · validate: an `expressions` item whose written form does not parse is refused (green)
 
 - Landed: `check_select_item` reads back the form SQLGlot writes for an `expressions` item and refuses the item when that form does not parse in the template's dialect (`slot-value-invalid`). In `databricks` and `spark`, SQLGlot reads `` :`'` `` and `` :`:` `` and writes `:'` and `::`, which nothing parses, so such a value rendered broken SQL. `docs/format.md` section 4 states the rule; changelog row of 2026-10-25. This closes the fuzz failure the previous entry left open: `test_fuzz.py::test_expressions_render_one_select_item_each` found those items only by chance.
