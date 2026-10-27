@@ -130,6 +130,8 @@ def run_tests(path: PathLike, *, stop: Callable[[], bool] | None = None) -> RunR
         if stop is not None and stop():
             break
         results.append(_run_case(template, case, stop))
+        if results[-1].status == "stopped":
+            break  # stopped mid-case: nothing more runs, whatever `stop` answers next
     stopped = len(results) < len(cases) or any(r.status == "stopped" for r in results)
     for case in cases[len(results) :]:
         results.append(CaseResult(case.name, "stopped", len(_runs(case)), 0))

@@ -5,7 +5,7 @@ Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 ## 2026-10-27 · runner: a caller can stop a long run of the tests (green)
 
 - Landed: `run_tests(path, *, stop=None)`. `stop` is called before each case and before each run of a case; when it returns true, nothing more runs. The case under way and every later case get the new status `stopped` (no problem; `runs_passed` counts the runs that passed before the stop), the report has `stopped: true`, also in `to_dict()`, and a stopped report is never `ok`. Without `stop` the report is as before. `docs/specs/sdk.md` (`CaseResult`, `RunReport`, `run_tests`). Format v0 is unchanged, so `docs/format.md` and its changelog are untouched; the CLI passes no `stop` and prints as before.
-- Numbers: 4 new tests on the example template (two cases, three runs): a stop before the first case, between the two cases and between the two runs of the second; a `stop` that never answers true gives a report equal to the one without it.
+- Numbers: 5 new tests on the example template (two cases, three runs): a stop before the first case, between the two cases and between the two runs of the second; a `stop` that answers true once, mid-case, still marks a third case `stopped` without running it (review fix: a case stopped mid-way ends the run, whatever `stop` answers next); a `stop` that never answers true gives a report equal to the one without it.
 - Decisions: one new status, `stopped`, for a case cut between its runs and for a case never started; an exception from `stop` propagates (it is the caller's code, not the template's).
 - Still open: none.
 

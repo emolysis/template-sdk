@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from collections.abc import Callable
 from pathlib import Path
 
@@ -268,6 +269,27 @@ def test_a_stop_between_two_runs_of_a_case_counts_the_runs_passed() -> None:
         ("known-totals", "stopped", 1, 2),
     ]
     assert report.cases[1].problems == ()
+
+
+def test_a_stop_that_answers_true_once_still_stops_every_later_case(tmp_path: Path) -> None:
+    # A template with three cases; `stop` answers true only before the second run of the
+    # second case, then false again: the third case must not run.
+    template = copy_fixture(EXAMPLE, tmp_path)
+    shutil.copytree(template / "tests" / "known-totals", template / "tests" / "zz-later")
+    answers: list[bool] = []
+
+    def once() -> bool:
+        answers.append(len(answers) == 4)  # the fifth question
+        return answers[-1]
+
+    report = run_tests(template, stop=once)
+    assert answers == [False, False, False, False, True]
+    assert (report.stopped, report.ok) == (True, False)
+    assert _summary(report) == [
+        ("by-channel", "passed", 1, 1),
+        ("known-totals", "stopped", 1, 2),
+        ("zz-later", "stopped", 0, 2),
+    ]
 
 
 def test_a_run_never_stopped_reports_as_without_stop() -> None:
