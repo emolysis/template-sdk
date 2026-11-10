@@ -2,6 +2,12 @@
 
 Newest entry first. Format: `standards/devlog.md` in emolysis/rules (private).
 
+## 2026-11-10 · docs: AGENTS.md says public beta (green)
+
+- Landed: `AGENTS.md` says Emolysis is in public beta for macOS (D31, 2026-11-08) in place of "nothing is released yet", and names "public beta" as the status label beside "not yet available". The README's status stays: this SDK is not on PyPI, and format v0 is a draft.
+- Numbers: one file, no code or check changed.
+- Still open: none.
+
 ## 2026-10-27 · runner: a caller can stop a long run of the tests (green)
 
 - Landed: `run_tests(path, *, stop=None)`. `stop` is called before each case and before each run of a case; when it returns true, nothing more runs. The case under way and every later case get the new status `stopped` (no problem; `runs_passed` counts the runs that passed before the stop), the report has `stopped: true`, also in `to_dict()`, and a stopped report is never `ok`. Without `stop` the report is as before. `docs/specs/sdk.md` (`CaseResult`, `RunReport`, `run_tests`). Format v0 is unchanged, so `docs/format.md` and its changelog are untouched; the CLI passes no `stop` and prints as before.
